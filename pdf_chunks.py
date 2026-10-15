@@ -6,11 +6,11 @@ def clean_text(text):
     text = text.replace("Dr. ", "Dr ")
     return text
 
-def load_pdf_chunks(pdf_path):
+def load_pdf_chunks(pdf_path, chunk_size=500, chunk_overlap=150):
     reader = PdfReader(pdf_path)
     splitter = RecursiveCharacterTextSplitter(
-        chunk_size=500,
-        chunk_overlap=150,
+        chunk_size=chunk_size,
+        chunk_overlap=chunk_overlap,
         separators=["\n\n", ". ", " ", ""],
         keep_separator="end",
     )
