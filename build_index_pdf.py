@@ -21,7 +21,7 @@ def build_index(pdf_path, chunk_size=500, chunk_overlap=150):
         ids=[f"chunk_{i}" for i in range(len(chunks))],
         documents=texts,
         embeddings=embeddings.tolist(),
-        metadatas=[{"source": pdf_path, "page": c["page"]} for c in chunks],
+        metadatas=[{"source": pdf_path, "page": c["page"], "section": c["section"]} for c in chunks],
     )
     print(f"Saved {collection.count()} chunks to the 'clinic_pdf' collection")
     return collection

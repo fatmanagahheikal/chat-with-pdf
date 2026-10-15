@@ -6,3 +6,4 @@ pypdf
 langchain-text-splitters
 pip install gradio --default-timeout=200
 gradio
+rank-bm25
