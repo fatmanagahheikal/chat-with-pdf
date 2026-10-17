@@ -26,3 +26,17 @@ Hardware: laptop CPU (no GPU).
 
 Hybrid + Re-ranking is the best on both files.
 Cost: about 3.3 seconds per question on CPU (20x slower than Hybrid).
+
+## Header/footer cleaning
+
+Lines repeated on 50% or more of the pages (digits ignored) are removed automatically.
+Removed in paper.pdf: running title line and "VOLUME 14, 2026 + page number".
+Removed in clinic_info.pdf: "Smile Dental Clinic - Patient Handbook 2026 Page X".
+
+| File | Re-ranking Hit@1 (before / after) | Re-ranking Hit@3 (before / after) |
+|---|---|---|
+| paper.pdf | 70% / 72% | 90% / 90% |
+| clinic_info.pdf | 100% / 95% | 100% / 100% |
+
+Decision: kept. The effect on retrieval is about one question in each direction,
+but chunks sent to the LLM are cleaner, and it works on any PDF automatically.
