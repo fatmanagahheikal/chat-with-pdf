@@ -2,7 +2,8 @@ import chromadb
 from sentence_transformers import SentenceTransformer
 from pdf_chunks import load_pdf_chunks
 
-embedder = SentenceTransformer("all-MiniLM-L6-v2")
+# embedder = SentenceTransformer("all-MiniLM-L6-v2")
+embedder = SentenceTransformer("BAAI/bge-small-en-v1.5")
 db = chromadb.PersistentClient(path="chroma_db")
 
 def build_index(pdf_path, chunk_size=500, chunk_overlap=150):
