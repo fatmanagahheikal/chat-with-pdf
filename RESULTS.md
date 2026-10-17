@@ -40,3 +40,12 @@ Removed in clinic_info.pdf: "Smile Dental Clinic - Patient Handbook 2026 Page X"
 
 Decision: kept. The effect on retrieval is about one question in each direction,
 but chunks sent to the LLM are cleaner, and it works on any PDF automatically.
+
+## Known limitation: tables and figures
+
+Tables and figures in paper.pdf are embedded as images, so pypdf reads only their captions.
+Checked with check_tables.py: 6 of 6 facts from tables and figures are missing from the chunks
+(for example RobustScaler in Table 2, and 12,941,396 parameters in Figure 3).
+The golden dataset has no questions from tables, so the Hit Rate does not show this gap.
+Possible fixes later: OCR, a vision LLM that describes each table and figure, or GROBID.
+Before fixing it, add golden questions whose answers are only in tables, to measure the fix.
