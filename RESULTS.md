@@ -49,3 +49,22 @@ Checked with check_tables.py: 6 of 6 facts from tables and figures are missing f
 The golden dataset has no questions from tables, so the Hit Rate does not show this gap.
 Possible fixes later: OCR, a vision LLM that describes each table and figure, or GROBID.
 Before fixing it, add golden questions whose answers are only in tables, to measure the fix.
+
+
+## Semantic chunking
+
+Split text into sentences, embed each sentence, and cut where the similarity between
+neighbouring sentences is in the lowest 25%. Minimum 200 chars, maximum 1000 chars.
+paper.pdf: 151 chunks (average 507 chars). clinic_info.pdf: 16 chunks (average 553 chars).
+
+| File | Chunking | Hybrid Hit@1 | Hybrid Hit@3 | Rerank Hit@1 | Rerank Hit@3 |
+|---|---|---|---|---|---|
+| paper.pdf | Fixed (500/150) | 62% | 82% | 72% | 90% |
+| paper.pdf | Semantic | 50% | 82% | 72% | 92% |
+| clinic_info.pdf | Fixed (500/150) | 90% | 100% | 95% | 100% |
+| clinic_info.pdf | Semantic | 85% | 100% | 95% | 100% |
+
+Decision: keep fixed chunking. With re-ranking the results are the same (one question difference),
+Hybrid alone gets worse, and semantic chunking is slower to build (it embeds every sentence).
+
+Known issue: pypdf sometimes drops the space between two words (for example "glovesand").

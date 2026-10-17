@@ -6,8 +6,11 @@ from pdf_chunks import load_pdf_chunks
 embedder = SentenceTransformer("BAAI/bge-small-en-v1.5")
 db = chromadb.PersistentClient(path="chroma_db")
 
-def build_index(pdf_path, chunk_size=500, chunk_overlap=150):
-    chunks = load_pdf_chunks(pdf_path, chunk_size, chunk_overlap)
+def build_index(pdf_path, chunk_size=500, chunk_overlap=150, chunker=None):
+    if chunker:
+        chunks = chunker(pdf_path)
+    else:
+        chunks = load_pdf_chunks(pdf_path, chunk_size, chunk_overlap)
     print(f"Created {len(chunks)} chunks from {pdf_path}")
 
     texts = [c["text"] for c in chunks]
