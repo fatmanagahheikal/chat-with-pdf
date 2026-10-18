@@ -68,3 +68,24 @@ Decision: keep fixed chunking. With re-ranking the results are the same (one que
 Hybrid alone gets worse, and semantic chunking is slower to build (it embeds every sentence).
 
 Known issue: pypdf sometimes drops the space between two words (for example "glovesand").
+
+## LLM chunking
+
+The LLM (deepseek-v4.1-flash) gets the numbered sentences of each page and returns
+the numbers where a new topic starts. The text itself is never rewritten.
+
+| File | Chunking | Chunks | Hybrid Hit@1 | Hybrid Hit@3 | Rerank Hit@1 | Rerank Hit@3 |
+|---|---|---|---|---|---|---|
+| paper.pdf | Fixed (500/150) | 219 | 62% | 82% | 72% | 90% |
+| paper.pdf | Semantic | 151 | 50% | 82% | 72% | 92% |
+| paper.pdf | LLM | 93 | 60% | 80% | 72% | 90% |
+| clinic_info.pdf | Fixed (500/150) | 27 | 90% | 100% | 95% | 100% |
+| clinic_info.pdf | Semantic | 16 | 85% | 100% | 95% | 100% |
+| clinic_info.pdf | LLM | 23 | 95% | 100% | 100% | 100% |
+
+LLM chunking is not reproducible: the same clinic file gave 18 chunks in one run and 23 in another.
+
+Decision: keep fixed chunking. With re-ranking, all three methods are within one question.
+Fixed chunking is free, fast and gives the same chunks every time.
+LLM chunking kept headings with their content and was one question better on the clinic,
+so it is worth testing again on more documents and more questions.

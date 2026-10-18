@@ -2,31 +2,39 @@ import os
 import gradio as gr
 from dotenv import load_dotenv
 from openai import OpenAI
-from build_index_pdf import build_index, embedder, db
+from build_index_pdf import build_index, db
+from bm25_search import make_bm25_retriever
+from hybrid_search import make_hybrid_retriever
+from rerank_search import make_rerank_retriever
 
 load_dotenv()
 client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key=os.getenv("OPENROUTER_API_KEY"))
 
+def make_retriever(collection):
+    bm25_retrieve = make_bm25_retriever(collection)
+    hybrid_retrieve = make_hybrid_retriever(collection, bm25_retrieve)
+    return make_rerank_retriever(hybrid_retrieve)
+
+try:
+    current_retrieve = make_retriever(db.get_collection("clinic_pdf"))
+except Exception:
+    current_retrieve = None
+
 def process_pdf(pdf_path):
+    global current_retrieve
     if pdf_path is None:
         return "Please upload a PDF first."
     collection = build_index(pdf_path)
+    current_retrieve = make_retriever(collection)
     return f"✅ Ready! Indexed {collection.count()} chunks. Ask your question."
-
-def retrieve(question, top_k=3):
-    collection = db.get_collection("clinic_pdf")
-    q = embedder.encode(question, normalize_embeddings=True)
-    results = collection.query(query_embeddings=[q.tolist()], n_results=top_k)
-    docs = results["documents"][0]
-    distances = results["distances"][0]
-    metas = results["metadatas"][0]
-    return [(d, 1 - dist / 2, m["page"]) for d, dist, m in zip(docs, distances, metas)]
 
 def answer_question(question):
     if not question.strip():
         return "Please type a question first."
-    results = retrieve(question)
-    context = "\n\n".join(f"[Page {page}]\n{chunk}" for chunk, score, page in results)
+    if current_retrieve is None:
+        return "Please upload and process a PDF first."
+    pages, texts = current_retrieve(question, 3)
+    context = "\n\n".join(f"[Page {page}]\n{chunk}" for page, chunk in zip(pages, texts))
     prompt = f"""Answer the question using ONLY the context below.
 
 - If the context contains the answer: answer clearly, then end with the page number(s) you used, like: (Source: page 4)
@@ -91,7 +99,7 @@ with gr.Blocks() as demo:
         <h1>📄 Chat with your PDF</h1>
         <p>Upload any PDF, ask questions, and get answers with page sources.</p>
         <div class="badges">
-            <span>RAG</span><span>ChromaDB</span><span>Sentence Transformers</span><span>Gradio</span>
+            <span>RAG</span><span>Hybrid Search</span><span>Re-ranking</span><span>ChromaDB</span><span>Gradio</span>
         </div>
     </div>
     """)
@@ -107,16 +115,16 @@ with gr.Blocks() as demo:
             gr.Markdown("### 2️⃣ Ask a question")
             question_input = gr.Textbox(
                 label="Your question",
-                placeholder="e.g. Which doctor treats children?",
+                placeholder="e.g. What GPU were the experiments run on?",
                 lines=2,
             )
             ask_btn = gr.Button("🔍 Ask", variant="primary", size="lg")
             answer_output = gr.Textbox(label="Answer", lines=6, interactive=False)
             gr.Examples(
                 examples=[
-                    "Which doctor treats children?",
-                    "How long does a dental implant take?",
-                    "What is the emergency fee outside working hours?",
+                    "What was the accuracy of the thermal imaging model?",
+                    "Why was pig skin used instead of human skin?",
+                    "What GPU were the experiments run on?",
                 ],
                 inputs=question_input,
             )

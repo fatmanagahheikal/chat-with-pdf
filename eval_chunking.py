@@ -4,11 +4,12 @@ from bm25_search import make_bm25_retriever
 from hybrid_search import make_hybrid_retriever
 from rerank_search import make_rerank_retriever
 from semantic_chunks import load_semantic_chunks
+from llm_chunks import load_llm_chunks
 from golden_dataset import GOLDEN_DATASET
 from golden_paper import GOLDEN_PAPER
 
 tests = [("paper.pdf", GOLDEN_PAPER), ("clinic_info.pdf", GOLDEN_DATASET)]
-chunkers = {"Fixed": None, "Semantic": load_semantic_chunks}
+chunkers = {"Fixed": None, "Semantic": load_semantic_chunks, "LLM": load_llm_chunks}
 
 for pdf_path, dataset in tests:
     print(f"\n===== {pdf_path} =====")
