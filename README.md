@@ -91,3 +91,10 @@ python app.py
 ## Author
 
 Fatma N. Heikal · [LinkedIn](https://www.linkedin.com/in/fatma-heikal-029b90203)
+
+
+
+## Recent Update
+
+- Chunks can now cross page boundaries (pages are stitched before splitting), and sources show page ranges like "page 4-5". Details in `RESULTS.md`.
+**App check:** "Why did you use pig skin?" now cites "page 4-5" and gets the full optical sentence, but still misses the anatomical reason (previous chunk, not in top 3). Needs answer-level (G) evaluation later.

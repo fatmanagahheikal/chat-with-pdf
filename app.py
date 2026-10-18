@@ -13,7 +13,23 @@ client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key=os.getenv("OPEN
 def make_retriever(collection):
     bm25_retrieve = make_bm25_retriever(collection)
     hybrid_retrieve = make_hybrid_retriever(collection, bm25_retrieve)
-    return make_rerank_retriever(hybrid_retrieve)
+    rerank_retrieve = make_rerank_retriever(hybrid_retrieve)
+
+    stored = collection.get(include=["documents", "metadatas"])
+    page_end_of = {
+        doc: meta.get("page_end", meta["page"])
+        for doc, meta in zip(stored["documents"], stored["metadatas"])
+    }
+
+    def retrieve(question, top_k=3):
+        pages, texts = rerank_retrieve(question, top_k)
+        labels = []
+        for page, text in zip(pages, texts):
+            end = page_end_of.get(text, page)
+            labels.append(f"{page}-{end}" if end != page else str(page))
+        return labels, texts
+
+    return retrieve
 
 try:
     current_retrieve = make_retriever(db.get_collection("clinic_pdf"))

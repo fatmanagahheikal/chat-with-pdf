@@ -89,3 +89,34 @@ Decision: keep fixed chunking. With re-ranking, all three methods are within one
 Fixed chunking is free, fast and gives the same chunks every time.
 LLM chunking kept headings with their content and was one question better on the clinic,
 so it is worth testing again on more documents and more questions.
+
+## Cross-page chunking (page stitching)
+
+**Problem:** Chunks never crossed a page boundary, because each page was split on its own.
+An idea that continued from one page to the next was cut in half.
+Example: "Why did you use pig skin?" returned only the optical reason (page 5)
+and missed the anatomical reason (end of page 4). The sentence
+"comparable optical absorption and scattering / properties" was literally split between pages.
+
+**Fix:** Stitch all pages of the same section into one text before splitting,
+keep a "ruler" of where each page starts and ends (character offsets),
+and store `page` (first page) and `page_end` (last page) for every chunk.
+The app now cites ranges like "page 4-5".
+
+**Chunks crossing a page boundary:** paper 15 of 219, clinic 7 of 25 (clinic was 27 chunks before).
+
+| File | Method | Hit@1 before | Hit@1 after | Hit@3 before | Hit@3 after |
+|---|---|---|---|---|---|
+| Paper | Semantic | 48% | 42% | 70% | 70% |
+| Paper | BM25 | 52% | 57% | 72% | 70% |
+| Paper | Hybrid | 62% | 65% | 82% | 82% |
+| Paper | **Rerank** | **72%** | **70%** | **90%** | **90%** |
+| Clinic | Semantic | 95% | 90% | 100% | 100% |
+| Clinic | BM25 | 55% | 55% | 95% | 90% |
+| Clinic | Hybrid | 90% | 80% | 100% | 95% |
+| Clinic | **Rerank** | **95%** | **95%** | **100%** | **100%** |
+
+**Decision:** Keep it. The final system (Rerank) is unchanged within one question
+(1 paper question = 2.5%). Our metric only checks that the answer text exists in a chunk,
+so it cannot see the real gain: the LLM now receives complete sentences instead of broken ones.
+Same reasoning as the repeated-line cleaning.
